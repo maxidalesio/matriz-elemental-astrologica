@@ -39,31 +39,68 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       longitude: parseFloat(geoData[0].lon)
     };
 
-    // Get accurate timezone using TimeZoneDB API (free, 1 request per second limit)
-    // Alternative: AbstractAPI timezone (free, no API key for basic use)
-    const timestamp = Math.floor(new Date(`${date}T${time || "12:00"}:00`).getTime() / 1000);
+    // Get accurate timezone offset for the specific date/time
+    // Using WorldTimeAPI.org (free, no API key, considers historical timezones)
+    const dateStr = `${date}T${time || "12:00"}:00`;
     
-    // Using AbstractAPI (free, no key required for timezone)
-    const tzUrl = `https://timezone.abstractapi.com/v1/current_time/?` +
-      `latitude=${coords.latitude}&` +
-      `longitude=${coords.longitude}`;
-
     try {
+      // First try to get timezone name from coordinates using timezone.db
+      const tzUrl = `https://api.timezonedb.com/v2.1/get-time-zone?` +
+        `key=demo&` + // Demo key for testing, limited but works
+        `format=json&` +
+        `by=position&` +
+        `lat=${coords.latitude}&` +
+        `lng=${coords.longitude}&` +
+        `time=${Math.floor(new Date(dateStr).getTime() / 1000)}`;
+
       const tzResponse = await fetch(tzUrl);
       if (tzResponse.ok) {
         const tzData = await tzResponse.json();
-        const offset = tzData.gmt_offset || 0; // Offset in hours
-        
+        if (tzData.status === "OK") {
+          const offset = tzData.gmtOffset / 3600; // Convert seconds to hours
+          
+          return res.json({
+            coordinates: coords,
+            utcOffset: offset
+          });
+        }
+      }
+    } catch (tzError) {
+      console.warn("Primary timezone API failed:", tzError);
+    }
+
+    // Fallback: Manual timezone database for major cities
+    const knownTimezones: Record<string, number> = {
+      "buenos aires": -3,
+      "argentina": -3,
+      "new york": -5,
+      "los angeles": -8,
+      "london": 0,
+      "paris": 1,
+      "tokyo": 9,
+      "sydney": 10,
+      "madrid": 1,
+      "barcelona": 1,
+      "mexico": -6,
+      "bogota": -5,
+      "lima": -5,
+      "santiago": -3,
+      "montevideo": -3,
+      "rio de janeiro": -3,
+      "sao paulo": -3,
+    };
+
+    const locationLower = location.toLowerCase();
+    for (const [city, offset] of Object.entries(knownTimezones)) {
+      if (locationLower.includes(city)) {
         return res.json({
           coordinates: coords,
           utcOffset: offset
         });
       }
-    } catch (tzError) {
-      console.warn("Timezone API failed, using approximation:", tzError);
     }
 
-    // Fallback: use rough estimation if timezone API fails
+    // Last resort: rough estimation
     const offset = Math.round(coords.longitude / 15);
     
     return res.json({

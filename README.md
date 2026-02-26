@@ -1,20 +1,62 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# ⚡ Matriz Elemental Astrológica
 
-# Run and deploy your AI Studio app
+Aplicación web para calcular automáticamente cartas natales y analizar la distribución de elementos y modalidades astrológicas usando IA (Gemini) y cálculos astronómicos precisos.
 
-This contains everything you need to run your app locally.
+## ✨ Características
 
-View your app in AI Studio: https://ai.studio/apps/1748b7fa-2fdc-4118-a95e-9d429bb51e9d
+- 🌟 **Cálculo automático de cartas natales** con Gemini AI
+- 🪐 **Posiciones planetarias precisas** usando astronomy-engine
+- 📊 **Análisis de elementos** (Fuego, Tierra, Aire, Agua)
+- 🔄 **Análisis de modalidades** (Cardinal, Fijo, Mutable)
+- 💾 **Guardado de personas** en localStorage
+- 🎨 **UI moderna y animada** con Tailwind CSS y Motion
+- 📱 **Responsive design**
 
-## Run Locally
+## 🚀 Desarrollo Local
 
-**Prerequisites:**  Node.js
+**Prerequisitos:** Node.js 18+
 
+1. **Instalar dependencias:**
+   ```bash
+   npm install
+   ```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+2. **Configurar API Key:**
+   - Crea un archivo `.env.local` en la raíz
+   - Agrega tu key de Gemini:
+     ```
+     GEMINI_API_KEY=tu_api_key_aqui
+     ```
+   - Obtén una key gratis en: https://aistudio.google.com/app/apikey
+
+3. **Ejecutar en desarrollo:**
+   ```bash
+   npm run dev
+   ```
+
+4. Abre http://localhost:5173
+
+## 📦 Deploy en Vercel
+
+**Ver guía completa:** [DEPLOYMENT.md](DEPLOYMENT.md)
+
+Resumen:
+1. Sube el proyecto a GitHub
+2. Importa en Vercel (detecta Vite automáticamente)
+3. Agrega `GEMINI_API_KEY` en Environment Variables
+4. Deploy ✅ (100% gratis)
+
+## 🛠️ Stack Tecnológico
+
+- **Frontend:** React 19, TypeScript, Vite
+- **Estilos:** Tailwind CSS 4
+- **Animaciones:** Motion (Framer Motion)
+- **Charts:** Recharts
+- **IA:** Google Gemini API
+- **Astronomía:** astronomy-engine
+- **Deployment:** Vercel (Serverless Functions)
+- **Storage:** localStorage
+
+## 📄 Licencia
+
+MIT

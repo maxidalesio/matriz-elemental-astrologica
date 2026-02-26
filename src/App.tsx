@@ -108,11 +108,11 @@ export default function App() {
     fetchSavedPeople();
   }, []);
 
-  const fetchSavedPeople = async () => {
+  const fetchSavedPeople = () => {
     try {
-      const response = await fetch("/api/people");
-      if (response.ok) {
-        const data = await response.json();
+      const stored = localStorage.getItem("saved_people");
+      if (stored) {
+        const data = JSON.parse(stored);
         setSavedPeople(data);
       }
     } catch (error) {
@@ -120,7 +120,7 @@ export default function App() {
     }
   };
 
-  const handleSavePerson = async () => {
+  const handleSavePerson = () => {
     if (!birthData.name || !birthData.date || !birthData.location) {
       alert("Por favor completa el nombre, fecha y lugar para guardar.");
       return;
@@ -128,15 +128,25 @@ export default function App() {
 
     setIsSaving(true);
     try {
-      const response = await fetch("/api/people", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(birthData),
-      });
-      if (response.ok) {
-        await fetchSavedPeople();
-        alert("Persona guardada con éxito.");
-      }
+      const stored = localStorage.getItem("saved_people");
+      const people = stored ? JSON.parse(stored) : [];
+      
+      const newPerson: SavedPerson = {
+        id: Date.now(),
+        name: birthData.name,
+        date: birthData.date,
+        time: birthData.time,
+        location: birthData.location,
+        latitude: birthData.latitude,
+        longitude: birthData.longitude,
+        utcOffset: birthData.utcOffset,
+        created_at: new Date().toISOString(),
+      };
+      
+      people.push(newPerson);
+      localStorage.setItem("saved_people", JSON.stringify(people));
+      setSavedPeople(people);
+      alert("Persona guardada con éxito.");
     } catch (error) {
       alert("Error al guardar la persona.");
     } finally {

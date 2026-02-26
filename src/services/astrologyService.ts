@@ -76,6 +76,32 @@ function calculateMeanNode(date: Date): number {
   return omega;
 }
 
+// Calculate approximate position of Chiron using mean motion
+function calculateChiron(date: Date): number {
+  // Chiron orbital period: ~50.7 years
+  // Mean motion: ~0.01948 degrees per day
+  
+  // Chiron was at 0° Aries (0°) on approximately March 28, 1977
+  const epochDate = new Date('1977-03-28T00:00:00Z');
+  const epochJD = Astronomy.MakeTime(epochDate).tt;
+  const currentJD = Astronomy.MakeTime(date).tt;
+  
+  // Days since epoch
+  const daysSinceEpoch = currentJD - epochJD;
+  
+  // Mean motion: 360° / (50.7 years * 365.25 days) ≈ 0.01945° per day
+  const meanMotion = 360.0 / (50.7 * 365.25);
+  
+  // Calculate position
+  let position = meanMotion * daysSinceEpoch;
+  
+  // Normalize to 0-360
+  position = position % 360;
+  if (position < 0) position += 360;
+  
+  return position;
+}
+
 export async function getPlanetaryPositionsFromBirthData(data: BirthData): Promise<AstrologyResponse> {
   // Get coordinates from backend (uses OpenStreetMap Nominatim - free)
   const response = await fetch("/api/calculate-chart", {
@@ -145,6 +171,10 @@ export async function getPlanetaryPositionsFromBirthData(data: BirthData): Promi
   
   positions.push({ planeta: "Nodo Norte", signo: getSign(nodeNorthLon) });
   positions.push({ planeta: "Nodo Sur", signo: getSign(nodeSouthLon) });
+
+  // Calculate Chiron (approximate mean motion)
+  const chironLon = calculateChiron(utcDate);
+  positions.push({ planeta: "Quirón", signo: getSign(chironLon) });
 
   return {
     positions: positions.map(p => ({ ...p, signo: normalizeSign(p.signo) })),

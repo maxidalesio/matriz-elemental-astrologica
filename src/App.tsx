@@ -914,7 +914,7 @@ export default function App() {
                           contentStyle={{ backgroundColor: '#0B1026', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}
                           itemStyle={{ color: '#fff' }}
                           formatter={(value: number, name: string, props: any) => [
-                            `${value} pts (${props.payload.percentage.toFixed(1)}%)`, 
+                            `${value} pts (${props.payload?.percentage?.toFixed(1) || '0'}%)`, 
                             "Puntaje"
                           ]}
                         />
@@ -927,6 +927,7 @@ export default function App() {
                             position="right" 
                             content={(props: any) => {
                               const { x, y, width, value, payload } = props;
+                              if (!payload || payload.percentage === undefined) return null;
                               return (
                                 <text 
                                   x={x + width + 10} 
@@ -1015,7 +1016,7 @@ export default function App() {
                           contentStyle={{ backgroundColor: '#0B1026', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}
                           itemStyle={{ color: '#fff' }}
                           formatter={(value: number, name: string, props: any) => [
-                            `${value} pts (${props.payload.percentage.toFixed(1)}%)`, 
+                            `${value} pts (${props.payload?.percentage?.toFixed(1) || '0'}%)`, 
                             "Puntaje"
                           ]}
                         />
@@ -1028,6 +1029,7 @@ export default function App() {
                             position="right" 
                             content={(props: any) => {
                               const { x, y, width, value, payload } = props;
+                              if (!payload || payload.percentage === undefined) return null;
                               return (
                                 <text 
                                   x={x + width + 10} 

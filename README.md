@@ -21,20 +21,14 @@ Aplicación web para calcular automáticamente cartas natales y analizar la dist
    npm install
    ```
 
-2. **Configurar API Key:**
-   - Crea un archivo `.env.local` en la raíz
-   - Agrega tu key de Gemini:
-     ```
-     GEMINI_API_KEY=tu_api_key_aqui
-     ```
-   - Obtén una key gratis en: https://aistudio.google.com/app/apikey
-
-3. **Ejecutar en desarrollo:**
+2. **Ejecutar en desarrollo:**
    ```bash
    npm run dev
    ```
 
-4. Abre http://localhost:5173
+3. Abre http://localhost:5173
+
+**Nota:** ¡No necesitas API keys! Todo funciona con servicios gratuitos.
 
 ## 📦 Deploy en Vercel
 
@@ -43,8 +37,7 @@ Aplicación web para calcular automáticamente cartas natales y analizar la dist
 Resumen:
 1. Sube el proyecto a GitHub
 2. Importa en Vercel (detecta Vite automáticamente)
-3. Agrega `GEMINI_API_KEY` en Environment Variables
-4. Deploy ✅ (100% gratis)
+3. Deploy ✅ (100% gratis, sin API keys necesarias!)
 
 ## 🛠️ Stack Tecnológico
 
@@ -52,8 +45,8 @@ Resumen:
 - **Estilos:** Tailwind CSS 4
 - **Animaciones:** Motion (Framer Motion)
 - **Charts:** Recharts
-- **IA:** Google Gemini API
-- **Astronomía:** astronomy-engine
+- **Geocoding:** OpenStreetMap Nominatim (gratis, sin API key)
+- **Astronomía:** astronomy-engine (código abierto)
 - **Deployment:** Vercel (Serverless Functions)
 - **Storage:** localStorage
 

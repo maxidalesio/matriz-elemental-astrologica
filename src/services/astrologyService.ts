@@ -60,8 +60,24 @@ export async function getLocationSuggestions(query: string): Promise<string[]> {
   }
 }
 
+// Calculate Mean Lunar Node (North Node) using simplified formula
+function calculateMeanNode(date: Date): number {
+  // Julian centuries from J2000.0
+  const jd = Astronomy.MakeTime(date).tt / 36525.0;
+  
+  // Mean longitude of ascending node (Omega)
+  // Formula from Jean Meeus "Astronomical Algorithms"
+  let omega = 125.0445479 - 1934.1362891 * jd + 0.0020754 * jd * jd;
+  
+  // Normalize to 0-360
+  omega = omega % 360;
+  if (omega < 0) omega += 360;
+  
+  return omega;
+}
+
 export async function getPlanetaryPositionsFromBirthData(data: BirthData): Promise<AstrologyResponse> {
-  // Get coordinates and extra data from backend (uses Gemini API)
+  // Get coordinates from backend (uses OpenStreetMap Nominatim - free)
   const response = await fetch("/api/calculate-chart", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -76,7 +92,7 @@ export async function getPlanetaryPositionsFromBirthData(data: BirthData): Promi
     throw new Error("No se pudo obtener los datos de ubicación.");
   }
 
-  const { coordinates, utcOffset, extraPoints } = await response.json();
+  const { coordinates, utcOffset } = await response.json();
 
   // Calculate planetary positions in the frontend using astronomy-engine
   const localDate = new Date(`${data.date}T${data.time || "12:00"}:00Z`);
@@ -123,10 +139,12 @@ export async function getPlanetaryPositionsFromBirthData(data: BirthData): Promi
   const ascDeg = (ascRad * 180.0) / Math.PI;
   positions.push({ planeta: "Ascendente", signo: getSign(ascDeg) });
 
-  // Add extra points from Gemini
-  if (extraPoints && extraPoints.length > 0) {
-    positions.push(...extraPoints.map((p: any) => ({ ...p, signo: normalizeSign(p.signo) })));
-  }
+  // Calculate Lunar Nodes (Mean Node formula)
+  const nodeNorthLon = calculateMeanNode(utcDate);
+  const nodeSouthLon = (nodeNorthLon + 180) % 360; // South Node is always opposite
+  
+  positions.push({ planeta: "Nodo Norte", signo: getSign(nodeNorthLon) });
+  positions.push({ planeta: "Nodo Sur", signo: getSign(nodeSouthLon) });
 
   return {
     positions: positions.map(p => ({ ...p, signo: normalizeSign(p.signo) })),

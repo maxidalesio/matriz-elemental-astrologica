@@ -39,30 +39,7 @@ git push -u origin main
 
 ---
 
-### 4. Configurar la API Key de Gemini
-
-**IMPORTANTE:** Tu app necesita esta variable de entorno para funcionar.
-
-1. Obtén tu API Key de Gemini:
-   - Ve a [Google AI Studio](https://aistudio.google.com/app/apikey)
-   - Haz clic en **"Create API Key"**
-   - Copia la key
-
-2. En Vercel:
-   - Ve a tu proyecto → **"Settings"** → **"Environment Variables"**
-   - Agrega una nueva variable:
-     - **Name:** `GEMINI_API_KEY`
-     - **Value:** `tu_api_key_aqui`
-   - Haz clic en **"Save"**
-
-3. **Re-deploya el proyecto:**
-   - Ve a **"Deployments"**
-   - Haz clic en los 3 puntos del último deployment
-   - Selecciona **"Redeploy"**
-
----
-
-### 5. ¡Listo! 🎉
+### 4. ¡Listo! 🎉
 
 Tu app estará disponible en: `https://tu-proyecto.vercel.app`
 
@@ -86,8 +63,8 @@ Cada vez que hagas `git push` a GitHub, Vercel desplegará automáticamente los 
 - Revisa los logs en Vercel → Deployments → View Function Logs
 
 ### "Failed to calculate chart":
-- Verifica que hayas configurado `GEMINI_API_KEY` correctamente
-- Asegúrate de haber re-desplegado después de agregar la variable
+- Verifica que la ubicación ingresada sea válida
+- Intenta con una ciudad más específica (ej: "Buenos Aires, Argentina")
 
 ### No se guardan las personas:
 - Las personas se guardan en el navegador (localStorage)
@@ -98,8 +75,9 @@ Cada vez que hagas `git push` a GitHub, Vercel desplegará automáticamente los 
 ## 💰 Costos
 
 - ✅ **Vercel:** 100% gratis
-- ✅ **Gemini API:** Gratis hasta 1,500 requests/día
-- ✅ **Total:** $0 USD
+- ✅ **OpenStreetMap Nominatim:** 100% gratis (geocoding y sugerencias)
+- ✅ **astronomy-engine:** Libre y de código abierto
+- ✅ **Total:** $0 USD - ¡Sin API keys necesarias!
 
 ---
 

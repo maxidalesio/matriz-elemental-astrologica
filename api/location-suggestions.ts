@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -14,27 +13,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      generationConfig: {
-        responseMimeType: "application/json",
+    // Use OpenStreetMap Nominatim API (free, no API key required)
+    const url = `https://nominatim.openstreetmap.org/search?` + 
+      `q=${encodeURIComponent(query)}&` +
+      `format=json&` +
+      `addressdetails=1&` +
+      `limit=5&` +
+      `featuretype=city`;
+
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'MatrizElementalAstrologica/1.0'
       }
     });
-    
-    const prompt = `Proporciona una lista de hasta 5 ciudades populares que coincidan con el texto: "${query}". 
-    Devuelve solo un array JSON de strings con el formato "Ciudad, País".
-    Ejemplo: ["Buenos Aires, Argentina", "Barcelona, España"]`;
 
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.text();
+    if (!response.ok) {
+      return res.json([]);
+    }
+
+    const data = await response.json();
     
-    const suggestions = JSON.parse(text);
-    return res.json(suggestions);
+    // Format results as "City, Country"
+    const suggestions = data.map((place: any) => {
+      const city = place.address?.city || 
+                   place.address?.town || 
+                   place.address?.village || 
+                   place.name;
+      const country = place.address?.country || '';
+      return country ? `${city}, ${country}` : city;
+    }).filter((s: string) => s); // Remove empty strings
+
+    return res.json(suggestions.slice(0, 5));
   } catch (error) {
     console.error("Error fetching location suggestions:", error);
-    return res.status(500).json({ error: "Failed to fetch suggestions" });
+    return res.json([]); // Return empty array on error
   }
 }
 

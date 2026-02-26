@@ -18,7 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 1. Get Coordinates
     const geoPrompt = `Dame las coordenadas exactas (Latitud y Longitud) de "${location}". Responde solo en JSON.`;
     const geoResponse = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash-exp",
       contents: geoPrompt,
       config: {
         responseMimeType: "application/json",
@@ -38,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 2. Get UTC offset
     const timePrompt = `¿Cuál era el desplazamiento UTC (offset) en "${location}" el día ${date} a las ${time || "12:00"}? Responde solo el número de horas (ej: -3, 5.5, 0).`;
     const timeResponse = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash-exp",
       contents: timePrompt
     });
     const offset = parseFloat(timeResponse.text.trim()) || 0;
@@ -46,7 +46,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 3. Get extra astrological points via Gemini
     const extraPrompt = `Calcula los signos para: Quirón, Nodo Norte, Nodo Sur para una persona nacida el ${date} a las ${time || "12:00"} (UTC${offset >= 0 ? '+' : ''}${offset}) en ${location}. Responde solo JSON.`;
     const extraResponse = await ai.models.generateContent({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash-exp",
       contents: extraPrompt,
       config: {
         responseMimeType: "application/json",

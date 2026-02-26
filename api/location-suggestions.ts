@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -14,24 +14,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
-    
-    const prompt = `Proporciona una lista de hasta 5 ciudades populares que coincidan con el texto: "${query}". 
-    Devuelve solo un array de strings con el formato "Ciudad, País".`;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
-      contents: prompt,
-      config: {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      generationConfig: {
         responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: { type: Type.STRING }
-        }
       }
     });
+    
+    const prompt = `Proporciona una lista de hasta 5 ciudades populares que coincidan con el texto: "${query}". 
+    Devuelve solo un array JSON de strings con el formato "Ciudad, País".
+    Ejemplo: ["Buenos Aires, Argentina", "Barcelona, España"]`;
 
-    const suggestions = JSON.parse(response.text.trim());
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const text = response.text();
+    
+    const suggestions = JSON.parse(text);
     return res.json(suggestions);
   } catch (error) {
     console.error("Error fetching location suggestions:", error);

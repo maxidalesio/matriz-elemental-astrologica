@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -13,59 +13,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      generationConfig: {
+        responseMimeType: "application/json",
+      }
+    });
 
     // 1. Get Coordinates
-    const geoPrompt = `Dame las coordenadas exactas (Latitud y Longitud) de "${location}". Responde solo en JSON.`;
-    const geoResponse = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
-      contents: geoPrompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            latitude: { type: Type.NUMBER },
-            longitude: { type: Type.NUMBER }
-          },
-          required: ["latitude", "longitude"]
-        }
-      }
-    });
-
-    const coords = JSON.parse(geoResponse.text.trim());
+    const geoPrompt = `Dame las coordenadas exactas (Latitud y Longitud) de "${location}". 
+    Responde solo en formato JSON con este esquema exacto:
+    {"latitude": number, "longitude": number}
+    Ejemplo: {"latitude": -34.6037, "longitude": -58.3816}`;
+    
+    const geoResult = await model.generateContent(geoPrompt);
+    const coords = JSON.parse(geoResult.response.text());
 
     // 2. Get UTC offset
-    const timePrompt = `¿Cuál era el desplazamiento UTC (offset) en "${location}" el día ${date} a las ${time || "12:00"}? Responde solo el número de horas (ej: -3, 5.5, 0).`;
-    const timeResponse = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
-      contents: timePrompt
-    });
-    const offset = parseFloat(timeResponse.text.trim()) || 0;
+    const timePrompt = `¿Cuál era el desplazamiento UTC (offset) en "${location}" el día ${date} a las ${time || "12:00"}? 
+    Responde SOLO el número de horas como un número (ej: -3, 5.5, 0). Sin texto adicional.`;
+    
+    const timeResult = await model.generateContent(timePrompt);
+    const offset = parseFloat(timeResult.response.text().trim()) || 0;
 
     // 3. Get extra astrological points via Gemini
-    const extraPrompt = `Calcula los signos para: Quirón, Nodo Norte, Nodo Sur para una persona nacida el ${date} a las ${time || "12:00"} (UTC${offset >= 0 ? '+' : ''}${offset}) en ${location}. Responde solo JSON.`;
-    const extraResponse = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
-      contents: extraPrompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              planeta: { type: Type.STRING },
-              signo: { type: Type.STRING }
-            }
-          }
-        }
-      }
-    });
-
+    const extraPrompt = `Calcula los signos zodiacales para: Quirón, Nodo Norte, Nodo Sur para una persona nacida el ${date} a las ${time || "12:00"} (UTC${offset >= 0 ? '+' : ''}${offset}) en ${location}. 
+    Responde solo en formato JSON array con este esquema exacto:
+    [{"planeta": "Quirón", "signo": "Aries"}, {"planeta": "Nodo Norte", "signo": "Tauro"}, {"planeta": "Nodo Sur", "signo": "Escorpio"}]`;
+    
+    const extraResult = await model.generateContent(extraPrompt);
+    
     let extraPoints = [];
     try {
-      extraPoints = JSON.parse(extraResponse.text.trim());
+      extraPoints = JSON.parse(extraResult.response.text());
     } catch (e) {
       console.warn("Could not get extra points:", e);
     }

@@ -1,12 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-// Simple timezone estimation based on longitude (rough approximation)
-function estimateTimezoneOffset(longitude: number): number {
-  // Basic calculation: 15 degrees = 1 hour
-  const offset = Math.round(longitude / 15);
-  return offset;
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -20,35 +13,59 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     // Get Coordinates using OpenStreetMap Nominatim (free, no API key)
-    const url = `https://nominatim.openstreetmap.org/search?` + 
+    const geoUrl = `https://nominatim.openstreetmap.org/search?` + 
       `q=${encodeURIComponent(location)}&` +
       `format=json&` +
       `limit=1`;
 
-    const response = await fetch(url, {
+    const geoResponse = await fetch(geoUrl, {
       headers: {
         'User-Agent': 'MatrizElementalAstrologica/1.0'
       }
     });
 
-    if (!response.ok) {
+    if (!geoResponse.ok) {
       return res.status(500).json({ error: "Failed to geocode location" });
     }
 
-    const data = await response.json();
+    const geoData = await geoResponse.json();
     
-    if (!data || data.length === 0) {
+    if (!geoData || geoData.length === 0) {
       return res.status(404).json({ error: "Location not found" });
     }
 
     const coords = {
-      latitude: parseFloat(data[0].lat),
-      longitude: parseFloat(data[0].lon)
+      latitude: parseFloat(geoData[0].lat),
+      longitude: parseFloat(geoData[0].lon)
     };
 
-    // Estimate timezone offset based on longitude
-    const offset = estimateTimezoneOffset(coords.longitude);
+    // Get accurate timezone using TimeZoneDB API (free, 1 request per second limit)
+    // Alternative: AbstractAPI timezone (free, no API key for basic use)
+    const timestamp = Math.floor(new Date(`${date}T${time || "12:00"}:00`).getTime() / 1000);
+    
+    // Using AbstractAPI (free, no key required for timezone)
+    const tzUrl = `https://timezone.abstractapi.com/v1/current_time/?` +
+      `latitude=${coords.latitude}&` +
+      `longitude=${coords.longitude}`;
 
+    try {
+      const tzResponse = await fetch(tzUrl);
+      if (tzResponse.ok) {
+        const tzData = await tzResponse.json();
+        const offset = tzData.gmt_offset || 0; // Offset in hours
+        
+        return res.json({
+          coordinates: coords,
+          utcOffset: offset
+        });
+      }
+    } catch (tzError) {
+      console.warn("Timezone API failed, using approximation:", tzError);
+    }
+
+    // Fallback: use rough estimation if timezone API fails
+    const offset = Math.round(coords.longitude / 15);
+    
     return res.json({
       coordinates: coords,
       utcOffset: offset
